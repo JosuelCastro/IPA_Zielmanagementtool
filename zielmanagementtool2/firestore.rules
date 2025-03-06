@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles are readable by anyone but only writable by the owner
+    match /users/{userId} {
+      allow read;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Goals are readable by the owner and their supervisor
+    match /goals/{goalId} {
+      allow read, write: if request.auth != null && 
+        (resource.data.apprenticeId == request.auth.uid || 
+         resource.data.supervisorId == request.auth.uid);
+    }
+    
+    // Comments are readable by the goal owner and supervisor
+    match /comments/{commentId} {
+      allow read, write: if request.auth != null && 
+        (get(/databases/$(database)/documents/goals/$(resource.data.goalId)).data.apprenticeId == request.auth.uid || 
+         get(/databases/$(database)/documents/goals/$(resource.data.goalId)).data.supervisorId == request.auth.uid);
+    }
+  }
+}
