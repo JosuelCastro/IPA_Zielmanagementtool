@@ -1,12 +1,18 @@
 import { Box } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import ApprenticeDashboard from './ApprenticeDashboard';
+import SupervisorDashboard from './SupervisorDashboard';
 
 const Dashboard = () => {
     const { userProfile } = useAuth();
 
     return (
         <Box>
-            Hallo Welt
+            {userProfile?.role === 'supervisor' ? (
+                <SupervisorDashboard />
+            ) : (
+                <ApprenticeDashboard />
+            )}
         </Box>
     );
 };

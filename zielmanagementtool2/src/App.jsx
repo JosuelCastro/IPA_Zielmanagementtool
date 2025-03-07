@@ -8,6 +8,7 @@ import { Container, Box } from '@mui/material';
 import theme from './theme';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/auth/PrivateRoute';
+import EmailVerificationCheck from './components/auth/EmailVerificationCheck';
 import Header from './components/layout/Header';
 
 // Auth Pages
@@ -19,8 +20,20 @@ import VerificationSentPage from './pages/VerificationSentPage';
 // Dashboard
 import Dashboard from './components/dashboard/Dashboard';
 
+// Apprentice Pages
+import GoalList from './components/goals/GoalList';
+import GoalDetail from './components/goals/GoalDetail';
+import GoalForm from './components/goals/GoalForm';
+import GoalEdit from './components/goals/GoalEdit';
+
+// Supervisor Pages
+import ApprenticeList from './components/supervisor/ApprenticeList';
+import ApprenticeDetail from './components/supervisor/ApprenticeDetail';
+import GoalReview from './components/supervisor/GoalReview';
+
 // Profile
 import ProfilePage from './pages/ProfilePage';
+
 
 function App() {
     return (
@@ -44,7 +57,83 @@ function App() {
                                         path="/dashboard"
                                         element={
                                             <PrivateRoute>
-                                                <Dashboard />
+                                                <EmailVerificationCheck>
+                                                    <Dashboard />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+
+                                    {/* Goal Routes */}
+                                    <Route
+                                        path="/goals"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <GoalList />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/goals/create"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <GoalForm />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/goals/:goalId"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <GoalDetail />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/goals/:goalId/edit"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <GoalEdit />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/goals/:goalId/review"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <GoalReview />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+
+                                    {/* Supervisor Routes */}
+                                    <Route
+                                        path="/apprentices"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <ApprenticeList />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/apprentices/:apprenticeId"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <ApprenticeDetail />
+                                                </EmailVerificationCheck>
                                             </PrivateRoute>
                                         }
                                     />
@@ -54,10 +143,13 @@ function App() {
                                         path="/profile"
                                         element={
                                             <PrivateRoute>
-                                                <ProfilePage />
+                                                <EmailVerificationCheck>
+                                                    <ProfilePage />
+                                                </EmailVerificationCheck>
                                             </PrivateRoute>
                                         }
                                     />
+
 
                                     {/* Default Route */}
                                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

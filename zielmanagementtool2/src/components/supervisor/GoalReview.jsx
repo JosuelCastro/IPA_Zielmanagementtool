@@ -26,8 +26,7 @@ import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
-
-// Helper functions for status and category are the same as in other components
+import { getStatusColor, getCategoryLabel } from '../../utils/helpers';
 
 const GoalReview = () => {
     const { goalId } = useParams();
@@ -130,11 +129,13 @@ const GoalReview = () => {
             };
 
             if (commentText.trim()) {
+                const now = new Date();
+
                 const comment = {
                     text: commentText,
                     authorId: currentUser.uid,
                     authorName: `${userProfile.firstName} ${userProfile.lastName} (Supervisor)`,
-                    createdAt: serverTimestamp()
+                    createdAt: now
                 };
 
                 updateData.comments = [...(goal.comments || []), comment];
@@ -168,11 +169,14 @@ const GoalReview = () => {
         setSubmitting(true);
 
         try {
+            // Use a regular Date object instead of serverTimestamp() for the comment
+            const now = new Date();
+
             const comment = {
                 text: commentText,
                 authorId: currentUser.uid,
                 authorName: `${userProfile.firstName} ${userProfile.lastName} (Supervisor)`,
-                createdAt: serverTimestamp()
+                createdAt: now
             };
 
             await updateDoc(doc(db, 'goals', goalId), {

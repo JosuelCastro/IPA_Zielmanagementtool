@@ -21,6 +21,7 @@ import {
     getDoc,
     doc
 } from 'firebase/firestore';
+import { getStatusColor, getCategoryLabel } from '../../utils/helpers';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
