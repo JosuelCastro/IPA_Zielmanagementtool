@@ -18,6 +18,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
+import LeaderboardStats from '../leaderboard/LeaderboardStats';
+import LeaderboardChart from '../leaderboard/LeaderboardChart';
 
 const SupervisorDashboard = () => {
     const [pendingReviews, setPendingReviews] = useState([]);
@@ -189,7 +191,16 @@ const SupervisorDashboard = () => {
                         )}
                     </Paper>
                 </Grid2>
+
             </Grid2>
+            <Grid2 item xs={12} mt={4}>
+                <LeaderboardStats />
+            </Grid2>
+            <Grid2 item xs={12} mt={4}>
+                <LeaderboardChart />
+            </Grid2>
+
+
         </Box>
     );
 };

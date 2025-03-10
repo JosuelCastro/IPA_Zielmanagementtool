@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
+// Import the goal checking service
 import { checkUserGoals } from '../services/goalCheckService';
 
 const AuthContext = createContext();

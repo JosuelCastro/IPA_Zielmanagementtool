@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/auth/PrivateRoute';
 import EmailVerificationCheck from './components/auth/EmailVerificationCheck';
 import Header from './components/layout/Header';
+import Leaderboard from './components/leaderboard/Leaderboard';
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
@@ -150,6 +151,16 @@ function App() {
                                         }
                                     />
 
+                                    <Route
+                                        path="/leaderboard"
+                                        element={
+                                            <PrivateRoute>
+                                                <EmailVerificationCheck>
+                                                    <Leaderboard />
+                                                </EmailVerificationCheck>
+                                            </PrivateRoute>
+                                        }
+                                    />
 
                                     {/* Default Route */}
                                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

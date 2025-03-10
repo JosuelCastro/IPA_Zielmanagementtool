@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "zielmanagementtool",
+    "default": "zielmanagementbackend",
     "IPA": "zielmanagementtool"
   },
   "targets": {},

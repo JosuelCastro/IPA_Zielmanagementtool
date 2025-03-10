@@ -28,6 +28,7 @@ import { ref, uploadBytes, getDownloadURL, listAll, deleteObject } from 'firebas
 import {auth, db, storage} from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
+import { createCommentNotification, createSubmissionNotification } from '../../services/notificationService';
 
 // Helper functions for category and status are the same as in GoalList component
 
@@ -201,6 +202,13 @@ const GoalDetail = () => {
                 submittedAt: serverTimestamp()
             });
 
+            // Create notification for all supervisors about the goal submission
+            await createSubmissionNotification({
+                goalId,
+                apprenticeId: currentUser.uid,
+                apprenticeName: `${userProfile.firstName} ${userProfile.lastName}`
+            });
+
             // Refresh goal data
             const updatedGoal = await getDoc(doc(db, 'goals', goalId));
             setGoal({
@@ -238,6 +246,30 @@ const GoalDetail = () => {
                 updatedAt: serverTimestamp()
             });
 
+            // If apprentice is commenting, notify appropriate supervisors
+            if (userProfile.role === 'apprentice') {
+                // For submitted goals, createCommentNotification will handle finding recipients
+                if (goal.submitted) {
+                    await createCommentNotification({
+                        goalId,
+                        senderId: currentUser.uid,
+                        senderName: `${userProfile.firstName} ${userProfile.lastName}`,
+                        senderRole: 'apprentice'
+                        // No specific recipientId needed - service will handle finding supervisors
+                    });
+                }
+            } else if (userProfile.role === 'supervisor') {
+                // Notify the apprentice
+                await createCommentNotification({
+                    goalId,
+                    senderId: currentUser.uid,
+                    senderName: `${userProfile.firstName} ${userProfile.lastName}`,
+                    senderRole: 'supervisor',
+                    recipientId: goal.apprenticeId,
+                    recipientRole: 'apprentice'
+                });
+            }
+
             // Refresh goal data
             const updatedGoal = await getDoc(doc(db, 'goals', goalId));
             setGoal({
@@ -246,10 +278,11 @@ const GoalDetail = () => {
             });
 
             setCommentText('');
-
         } catch (err) {
             console.error('Error adding comment:', err);
             setError('Failed to add comment. Please try again.');
+        } finally {
+            setSubmitting(false);
         }
     };
 

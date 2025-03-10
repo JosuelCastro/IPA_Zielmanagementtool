@@ -46,7 +46,10 @@ const RegisterPage = () => {
             try {
                 setError('');
                 setLoading(true);
-                await register(values.email, values.password, values.firstName, values.lastName);
+
+                // Register the user
+                const { user } = await register(values.email, values.password, values.firstName, values.lastName);
+
                 navigate('/verification-sent');
             } catch (err) {
                 setError(err.message);

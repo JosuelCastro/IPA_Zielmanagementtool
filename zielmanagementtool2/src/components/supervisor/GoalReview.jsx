@@ -27,6 +27,8 @@ import { db, storage } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
 import { getStatusColor, getCategoryLabel } from '../../utils/helpers';
+// Import notification service
+import { createCommentNotification, createApprovalNotification } from '../../services/notificationService';
 
 const GoalReview = () => {
     const { goalId } = useParams();
@@ -143,6 +145,27 @@ const GoalReview = () => {
 
             await updateDoc(doc(db, 'goals', goalId), updateData);
 
+            // Send approval notification to the apprentice
+            await createApprovalNotification({
+                goalId,
+                supervisorId: currentUser.uid,
+                supervisorName: `${userProfile.firstName} ${userProfile.lastName}`,
+                apprenticeId: goal.apprenticeId,
+                rating
+            });
+
+            // If there's a comment, also send a comment notification
+            if (commentText.trim()) {
+                await createCommentNotification({
+                    goalId,
+                    senderId: currentUser.uid,
+                    senderName: `${userProfile.firstName} ${userProfile.lastName}`,
+                    senderRole: 'supervisor',
+                    recipientId: goal.apprenticeId,
+                    recipientRole: 'apprentice'
+                });
+            }
+
             // Refresh goal data
             const updatedGoal = await getDoc(doc(db, 'goals', goalId));
             setGoal({
@@ -182,6 +205,16 @@ const GoalReview = () => {
             await updateDoc(doc(db, 'goals', goalId), {
                 comments: [...(goal.comments || []), comment],
                 updatedAt: serverTimestamp()
+            });
+
+            // Send notification to the apprentice about the new comment
+            await createCommentNotification({
+                goalId,
+                senderId: currentUser.uid,
+                senderName: `${userProfile.firstName} ${userProfile.lastName}`,
+                senderRole: 'supervisor',
+                recipientId: goal.apprenticeId,
+                recipientRole: 'apprentice'
             });
 
             // Refresh goal data

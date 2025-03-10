@@ -1,5 +1,6 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { createGoalReminderNotification } from './notificationService';
 
 /**
  * Check if a user has at least 3 goals and send a reminder notification if not
@@ -24,7 +25,7 @@ export const checkUserGoals = async (user, userProfile) => {
         const goalSnapshot = await getDocs(goalsQuery);
         const goalCount = goalSnapshot.size;
 
-        // If they have fewer than 3 goals, send a reminder notification / Email!
+        // If they have fewer than 3 goals, send a reminder notification
         if (goalCount < 3) {
             await createGoalReminderNotification({
                 userId: user.uid,

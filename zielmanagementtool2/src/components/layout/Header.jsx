@@ -26,12 +26,15 @@ import {
     ExitToApp as LogoutIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext.jsx';
+import NotificationIcon from '../notifications/NotificationIcon';
+import NotificationsPopup from '../notifications/NotificationsPopup';
 
 const Header = () => {
     const { currentUser, userProfile, logout } = useAuth();
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
 
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget);
@@ -55,12 +58,21 @@ const Header = () => {
         }
     };
 
+    const handleNotificationsOpen = (event) => {
+        setNotificationsAnchorEl(event.currentTarget);
+    };
+
+    const handleNotificationsClose = () => {
+        setNotificationsAnchorEl(null);
+    };
+
     const drawerItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard' },
         ...(userProfile?.role === 'apprentice'
                 ? [{ text: 'My Goals', icon: <AssignmentIcon />, link: '/goals' }]
                 : [{ text: 'Apprentices', icon: <PeopleIcon />, link: '/apprentices' }]
         ),
+        { text: 'Leaderboard', icon: <PeopleIcon />, link: '/leaderboard' }
     ];
 
     return (
@@ -115,8 +127,19 @@ const Header = () => {
                                         Apprentices
                                     </Button>
                                 )}
+                                <Button
+                                    color="inherit"
+                                    component={RouterLink}
+                                    to="/leaderboard"
+                                >
+                                    Leaderboard
+                                </Button>
                             </Box>
 
+                            {/* Notification Icon */}
+                            <NotificationIcon onClick={handleNotificationsOpen} />
+
+                            {/* User Avatar */}
                             <IconButton
                                 size="large"
                                 aria-label="account of current user"
@@ -150,6 +173,13 @@ const Header = () => {
                                 </MenuItem>
                                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
                             </Menu>
+
+                            {/* Notifications Popup */}
+                            <NotificationsPopup
+                                anchorEl={notificationsAnchorEl}
+                                open={Boolean(notificationsAnchorEl)}
+                                onClose={handleNotificationsClose}
+                            />
                         </Box>
                     ) : (
                         <Button color="inherit" component={RouterLink} to="/login">

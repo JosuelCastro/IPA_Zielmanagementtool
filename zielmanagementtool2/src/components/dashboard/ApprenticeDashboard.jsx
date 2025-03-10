@@ -3,7 +3,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import {
     Box,
     Typography,
-    Grid,
     Paper,
     Button,
     CircularProgress,
@@ -20,6 +19,7 @@ import {
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
+import LeaderboardStats from '../leaderboard/LeaderboardStats';
 
 const ApprenticeDashboard = () => {
     const [goals, setGoals] = useState([]);
@@ -160,23 +160,24 @@ const ApprenticeDashboard = () => {
                     Add New Goal
                 </Button>
             </Box>
+
             <Grid2 container spacing={3} sx={{ mb: 4 }}>
                 <Grid2 item xs={12} sm={6} md={3}>
                     {renderStatCard(
                         'Total Goals',
                         statistics.total,
-                        statistics.total,
+                        Math.max(3, statistics.total),
                         <AssignmentIcon />,
                         'primary'
                     )}
                 </Grid2>
                 <Grid2 item xs={12} sm={6} md={3}>
                     {renderStatCard(
-                        'In Progress',
-                        statistics.inProgress,
+                        'Approved',
+                        statistics.approved,
                         statistics.total,
-                        <AssignmentIcon />,
-                        'warning'
+                        <CheckIcon />,
+                        'success'
                     )}
                 </Grid2>
                 <Grid2 item xs={12} sm={6} md={3}>
@@ -190,11 +191,11 @@ const ApprenticeDashboard = () => {
                 </Grid2>
                 <Grid2 item xs={12} sm={6} md={3}>
                     {renderStatCard(
-                        'Approved',
-                        statistics.approved,
+                        'In Progress',
+                        statistics.inProgress,
                         statistics.total,
-                        <CheckIcon />,
-                        'success'
+                        <AssignmentIcon />,
+                        'warning'
                     )}
                 </Grid2>
             </Grid2>
@@ -264,6 +265,7 @@ const ApprenticeDashboard = () => {
                                         variant="outlined"
                                         component={RouterLink}
                                         to={`/goals/${goal.id}`}
+                                        sx={{ ml: 2 }}
                                     >
                                         View Details
                                     </Button>
@@ -274,7 +276,7 @@ const ApprenticeDashboard = () => {
 
                     {goals.length > 3 && (
                         <Grid2 item xs={12}>
-                            <Box sx={{ textAlign: 'center', mt: 2 }}>
+                            <Box sx={{ textAlign: 'center'}}>
                                 <Button
                                     variant="outlined"
                                     component={RouterLink}
@@ -287,6 +289,14 @@ const ApprenticeDashboard = () => {
                     )}
                 </Grid2>
             )}
+            <Typography mt={4} variant="h5" gutterBottom>
+                Current Ranking
+            </Typography>
+            <Grid2 item xs={12} md={4}>
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                <LeaderboardStats />
+                </Box>
+            </Grid2>
         </Box>
     );
 };
