@@ -77,7 +77,7 @@ const Header = () => {
 
     return (
         <Box sx={{ flexGrow: 1 }}>
-            <AppBar position="static">
+            <AppBar sx={{ borderRadius: 0 }} position="static">
                 <Toolbar>
                     {currentUser && (
                         <IconButton
@@ -91,11 +91,31 @@ const Header = () => {
                         </IconButton>
                     )}
 
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-                            ZielManager
+                    {/* Logo and App Title Container */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexGrow: 1
+                    }}>
+                        {/* Cognizant Logo */}
+                        <RouterLink to="/" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            textDecoration: 'none',
+                            color: 'inherit'
+                        }}>
+                            <Box
+                                component="img"
+                                src="/Cognizant.png"
+                                alt="Cognizant Logo"
+                                sx={{
+                                    height: 64,
+                                    mr: 1,
+                                    display: 'block'
+                                }}
+                            />
                         </RouterLink>
-                    </Typography>
+                    </Box>
 
                     {currentUser ? (
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -200,6 +220,27 @@ const Header = () => {
                     role="presentation"
                     onClick={handleDrawerToggle}
                 >
+                    {/* Logo in drawer header */}
+                    <Box sx={{
+                        p: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
+                    }}>
+                        <Box
+                            component="img"
+                            src="/Cognizant.png"
+                            alt="Cognizant Logo"
+                            sx={{
+                                height: 32,
+                                mr: 1
+                            }}
+                        />
+                        <Typography variant="h6" component="div">
+                            ZielManager
+                        </Typography>
+                    </Box>
+
                     <List>
                         {drawerItems.map((item) => (
                             <ListItem

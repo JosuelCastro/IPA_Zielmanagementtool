@@ -173,13 +173,14 @@ const ApprenticeDashboard = () => {
                 </Grid2>
                 <Grid2 item xs={12} sm={6} md={3}>
                     {renderStatCard(
-                        'Approved',
-                        statistics.approved,
+                        'In Progress',
+                        statistics.inProgress,
                         statistics.total,
-                        <CheckIcon />,
-                        'success'
+                        <AssignmentIcon />,
+                        'warning'
                     )}
                 </Grid2>
+
                 <Grid2 item xs={12} sm={6} md={3}>
                     {renderStatCard(
                         'Submitted',
@@ -191,11 +192,11 @@ const ApprenticeDashboard = () => {
                 </Grid2>
                 <Grid2 item xs={12} sm={6} md={3}>
                     {renderStatCard(
-                        'In Progress',
-                        statistics.inProgress,
+                        'Approved',
+                        statistics.approved,
                         statistics.total,
-                        <AssignmentIcon />,
-                        'warning'
+                        <CheckIcon />,
+                        'success'
                     )}
                 </Grid2>
             </Grid2>
