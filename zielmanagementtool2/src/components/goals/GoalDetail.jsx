@@ -29,6 +29,7 @@ import {auth, db, storage} from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
 import { createCommentNotification, createSubmissionNotification } from '../../services/notificationService';
+import DOMPurify from 'dompurify';
 
 // Helper functions for category and status are the same as in GoalList component
 
@@ -59,6 +60,11 @@ const getCategoryLabel = (category) => {
         default:
             return category;
     }
+};
+
+// Helper function to sanitize text content
+const sanitizeText = (text) => {
+    return DOMPurify.sanitize(text);
 };
 
 const GoalDetail = () => {
@@ -117,7 +123,7 @@ const GoalDetail = () => {
                 result.items.map(async (itemRef) => {
                     const url = await getDownloadURL(itemRef);
                     return {
-                        name: itemRef.name,
+                        name: DOMPurify.sanitize(itemRef.name),
                         url,
                         path: itemRef.fullPath
                     };
@@ -141,10 +147,26 @@ const GoalDetail = () => {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validate file type and size for security
+        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        if (!allowedTypes.includes(file.type)) {
+            setError('Invalid file type. Only images, PDFs, text and Word documents are allowed.');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            setError('File is too large. Maximum size is 10MB.');
+            return;
+        }
+
         setUploadLoading(true);
 
         try {
-            const fileRef = ref(storage, `evidence/${currentUser.uid}/${goalId}/${file.name}`);
+            // Create a safe filename
+            const safeFileName = file.name.replace(/[^a-z0-9.]/gi, '_');
+            const fileRef = ref(storage, `evidence/${currentUser.uid}/${goalId}/${safeFileName}`);
             await uploadBytes(fileRef, file);
 
             // Reload evidence list
@@ -228,6 +250,9 @@ const GoalDetail = () => {
     const handleAddComment = async () => {
         if (!commentText.trim()) return;
 
+        // Sanitize the comment text before saving
+        const sanitizedComment = DOMPurify.sanitize(commentText.trim());
+
         setSubmitting(true);
 
         try {
@@ -235,7 +260,7 @@ const GoalDetail = () => {
             const now = new Date();
 
             const comment = {
-                text: commentText,
+                text: sanitizedComment,
                 authorId: currentUser.uid,
                 authorName: `${userProfile.firstName} ${userProfile.lastName}`,
                 createdAt: now
@@ -331,7 +356,7 @@ const GoalDetail = () => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
                     <Typography variant="h4" gutterBottom>
-                        {goal.title}
+                        {sanitizeText(goal.title)}
                     </Typography>
                     <Box sx={{ mb: 2 }}>
                         <Chip
@@ -383,7 +408,7 @@ const GoalDetail = () => {
                             Description
                         </Typography>
                         <Typography variant="body1" paragraph>
-                            {goal.description}
+                            {sanitizeText(goal.description)}
                         </Typography>
 
                         <Grid2 container spacing={2}>
@@ -452,7 +477,7 @@ const GoalDetail = () => {
                                         }
                                     >
                                         <ListItemText
-                                            primary={file.name}
+                                            primary={sanitizeText(file.name)}
                                             secondary={
                                                 <Button
                                                     variant="text"
@@ -486,7 +511,7 @@ const GoalDetail = () => {
                                         <ListItemText
                                             primary={
                                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                    {comment.authorName}
+                                                    {sanitizeText(comment.authorName)}
                                                     {comment.createdAt && (
                                                         <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                                                             {format(comment.createdAt.toDate(), 'MMM d, yyyy h:mm a')}
@@ -494,7 +519,7 @@ const GoalDetail = () => {
                                                     )}
                                                 </Typography>
                                             }
-                                            secondary={comment.text}
+                                            secondary={sanitizeText(comment.text)}
                                         />
                                     </ListItem>
                                 ))}
@@ -514,6 +539,9 @@ const GoalDetail = () => {
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
                                 sx={{ mb: 1 }}
+                                inputProps={{
+                                    maxLength: 1000, // Limit comment length for security
+                                }}
                             />
                             <Button
                                 variant="contained"

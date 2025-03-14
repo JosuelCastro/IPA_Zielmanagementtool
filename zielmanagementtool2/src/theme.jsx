@@ -123,6 +123,26 @@ const theme = createTheme({
                 },
             },
         },
+        MuiAvatar: {
+            styleOverrides: {
+                root: {
+                    // Make sure any icon within an avatar has a contrasting color
+                    '& .MuiSvgIcon-root': {
+                        color: '#FFFFFF', // White color for better visibility in dark avatars
+                    },
+                },
+                colorPrimary: {
+                    '& .MuiSvgIcon-root': {
+                        color: '#FFFFFF', // Ensure white icon in primary-colored avatars
+                    },
+                },
+                colorSecondary: {
+                    '& .MuiSvgIcon-root': {
+                        color: '#FFFFFF', // Ensure white icon in secondary-colored avatars
+                    },
+                },
+            },
+        },
         MuiIconButton: {
             styleOverrides: {
                 root: {

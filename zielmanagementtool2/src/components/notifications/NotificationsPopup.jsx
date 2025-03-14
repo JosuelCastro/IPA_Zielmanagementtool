@@ -34,6 +34,13 @@ import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import ActionableNotification from './ActionableNotification';
+import DOMPurify from 'dompurify';
+
+// Helper function to sanitize text content
+const sanitizeText = (text) => {
+    if (!text) return '';
+    return DOMPurify.sanitize(text);
+};
 
 const NotificationsPopup = ({ anchorEl, open, onClose }) => {
     const [notifications, setNotifications] = useState([]);
@@ -347,7 +354,11 @@ const NotificationsPopup = ({ anchorEl, open, onClose }) => {
                                 .map(notification => (
                                     <ActionableNotification
                                         key={notification.id}
-                                        notification={notification}
+                                        notification={{
+                                            ...notification,
+                                            message: sanitizeText(notification.message),
+                                            senderName: sanitizeText(notification.senderName)
+                                        }}
                                         onActionComplete={handleActionComplete}
                                     />
                                 ))
@@ -382,7 +393,7 @@ const NotificationsPopup = ({ anchorEl, open, onClose }) => {
                                         primary={
                                             <Box sx={{ pr: 6 }}>
                                                 <Typography variant="body2" component="span" fontWeight={notification.read ? 'normal' : 'bold'}>
-                                                    {notification.message}
+                                                    {sanitizeText(notification.message)}
                                                 </Typography>
                                             </Box>
                                         }
@@ -390,7 +401,7 @@ const NotificationsPopup = ({ anchorEl, open, onClose }) => {
                                             <Box sx={{ display: 'flex', flexDirection: 'column', mt: 0.5 }}>
                                                 {notification.goalTitle && (
                                                     <Typography variant="caption" color="text.secondary">
-                                                        {notification.goalTitle}
+                                                        {sanitizeText(notification.goalTitle)}
                                                     </Typography>
                                                 )}
                                                 <Typography variant="caption" color="text.secondary">

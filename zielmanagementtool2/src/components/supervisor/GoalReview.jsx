@@ -29,6 +29,12 @@ import { format } from 'date-fns';
 import { getStatusColor, getCategoryLabel } from '../../utils/helpers';
 // Import notification service
 import { createCommentNotification, createApprovalNotification } from '../../services/notificationService';
+import DOMPurify from 'dompurify';
+
+// Helper function to sanitize text content
+const sanitizeText = (text) => {
+    return DOMPurify.sanitize(text);
+};
 
 const GoalReview = () => {
     const { goalId } = useParams();
@@ -86,7 +92,7 @@ const GoalReview = () => {
                         result.items.map(async (itemRef) => {
                             const url = await getDownloadURL(itemRef);
                             return {
-                                name: itemRef.name,
+                                name: DOMPurify.sanitize(itemRef.name),
                                 url,
                                 path: itemRef.fullPath
                             };
@@ -132,9 +138,10 @@ const GoalReview = () => {
 
             if (commentText.trim()) {
                 const now = new Date();
+                const sanitizedComment = DOMPurify.sanitize(commentText.trim());
 
                 const comment = {
-                    text: commentText,
+                    text: sanitizedComment,
                     authorId: currentUser.uid,
                     authorName: `${userProfile.firstName} ${userProfile.lastName} (Supervisor)`,
                     createdAt: now
@@ -194,9 +201,10 @@ const GoalReview = () => {
         try {
             // Use a regular Date object instead of serverTimestamp() for the comment
             const now = new Date();
+            const sanitizedComment = DOMPurify.sanitize(commentText.trim());
 
             const comment = {
-                text: commentText,
+                text: sanitizedComment,
                 authorId: currentUser.uid,
                 authorName: `${userProfile.firstName} ${userProfile.lastName} (Supervisor)`,
                 createdAt: now
@@ -274,10 +282,10 @@ const GoalReview = () => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
                     <Typography variant="h4" gutterBottom>
-                        {goal.title}
+                        {sanitizeText(goal.title)}
                     </Typography>
                     <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                        Submitted by {goal.apprenticeName}
+                        Submitted by {sanitizeText(goal.apprenticeName)}
                     </Typography>
                     <Box sx={{ mb: 2 }}>
                         <Chip
@@ -312,7 +320,7 @@ const GoalReview = () => {
                             Description
                         </Typography>
                         <Typography variant="body1" paragraph>
-                            {goal.description}
+                            {sanitizeText(goal.description)}
                         </Typography>
 
                         <Grid2 container spacing={2}>
@@ -351,7 +359,7 @@ const GoalReview = () => {
                                 {evidence.map((file) => (
                                     <ListItem key={file.path} divider>
                                         <ListItemText
-                                            primary={file.name}
+                                            primary={sanitizeText(file.name)}
                                             secondary={
                                                 <Button
                                                     variant="text"
@@ -385,7 +393,7 @@ const GoalReview = () => {
                                         <ListItemText
                                             primary={
                                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                    {comment.authorName}
+                                                    {sanitizeText(comment.authorName)}
                                                     {comment.createdAt && (
                                                         <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                                                             {format(comment.createdAt.toDate(), 'MMM d, yyyy h:mm a')}
@@ -393,7 +401,7 @@ const GoalReview = () => {
                                                     )}
                                                 </Typography>
                                             }
-                                            secondary={comment.text}
+                                            secondary={sanitizeText(comment.text)}
                                         />
                                     </ListItem>
                                 ))}
@@ -414,6 +422,9 @@ const GoalReview = () => {
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
                                     sx={{ mb: 1 }}
+                                    inputProps={{
+                                        maxLength: 1000, // Limit comment length for security
+                                    }}
                                 />
                                 <Button
                                     variant="contained"

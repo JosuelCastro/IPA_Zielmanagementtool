@@ -19,6 +19,13 @@ import {
 import { processSupervisorRequest } from '../../services/notificationService';
 import { useAuth } from '../../context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import DOMPurify from 'dompurify';
+
+// Helper function to sanitize text content
+const sanitizeText = (text) => {
+    if (!text) return '';
+    return DOMPurify.sanitize(text);
+};
 
 const ActionableNotification = ({ notification, onActionComplete }) => {
     const [processing, setProcessing] = useState(false);
@@ -86,7 +93,7 @@ const ActionableNotification = ({ notification, onActionComplete }) => {
                     <ListItemText
                         primary={
                             <Typography variant="body2" component="span" fontWeight="bold">
-                                {notification.message}
+                                {sanitizeText(notification.message)}
                             </Typography>
                         }
                         secondary={
