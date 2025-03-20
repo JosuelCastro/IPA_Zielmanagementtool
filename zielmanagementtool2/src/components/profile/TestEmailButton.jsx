@@ -1,4 +1,3 @@
-// src/components/profile/TestEmailButton.jsx
 import { useState } from 'react';
 import {
     Box,

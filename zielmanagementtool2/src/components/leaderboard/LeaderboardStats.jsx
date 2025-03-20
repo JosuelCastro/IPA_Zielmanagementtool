@@ -10,9 +10,10 @@ import {
     Avatar,
     Rating,
     CircularProgress,
-    Divider
+    Divider,
+    Chip
 } from '@mui/material';
-import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { EmojiEvents as TrophyIcon, Leaderboard as LeaderboardIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
@@ -21,11 +22,21 @@ const LeaderboardStats = () => {
     const [topApprentices, setTopApprentices] = useState([]);
     const [userRank, setUserRank] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [resetTimestamp, setResetTimestamp] = useState(null);
     const { currentUser, userProfile } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Zuerst Leaderboard-Einstellungen abrufen, um den Reset-Timestamp zu bekommen
+                const settingsDoc = await getDoc(doc(db, 'settings', 'leaderboard'));
+                let resetDate = null;
+
+                if (settingsDoc.exists() && settingsDoc.data().leaderboardResetTimestamp) {
+                    resetDate = settingsDoc.data().leaderboardResetTimestamp;
+                    setResetTimestamp(resetDate);
+                }
+
                 // Structure to hold all apprentices with their ratings
                 const apprenticeRatings = [];
 
@@ -47,12 +58,25 @@ const LeaderboardStats = () => {
                         averageRating: 0
                     };
 
-                    // Get approved goals for this apprentice
-                    const goalQuery = query(
-                        collection(db, 'goals'),
-                        where('apprenticeId', '==', apprentice.id),
-                        where('approved', '==', true)
-                    );
+                    // Basisabfrage erstellen
+                    let goalQuery;
+
+                    if (resetDate) {
+                        // Nur Ziele, die nach dem letzten Reset genehmigt wurden
+                        goalQuery = query(
+                            collection(db, 'goals'),
+                            where('apprenticeId', '==', apprentice.id),
+                            where('approved', '==', true),
+                            where('approvedAt', '>=', resetDate)
+                        );
+                    } else {
+                        // Alle genehmigten Ziele, wenn kein Reset erfolgt ist
+                        goalQuery = query(
+                            collection(db, 'goals'),
+                            where('apprenticeId', '==', apprentice.id),
+                            where('approved', '==', true)
+                        );
+                    }
 
                     const goalSnapshot = await getDocs(goalQuery);
                     let totalRating = 0;
@@ -103,6 +127,17 @@ const LeaderboardStats = () => {
         fetchData();
     }, [currentUser, userProfile]);
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return null;
+
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return new Intl.DateTimeFormat('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
+    };
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -115,9 +150,19 @@ const LeaderboardStats = () => {
         <Card>
             <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">
-                        Leaderboard
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h6">
+                            Leaderboard
+                        </Typography>
+                        {resetTimestamp && (
+                            <Chip
+                                label={`Seit: ${formatDate(resetTimestamp)}`}
+                                color="primary"
+                                size="small"
+                                variant="outlined"
+                            />
+                        )}
+                    </Box>
                     <Button
                         variant="outlined"
                         size="small"

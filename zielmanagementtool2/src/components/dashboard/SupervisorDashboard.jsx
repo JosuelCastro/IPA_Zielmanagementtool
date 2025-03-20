@@ -155,7 +155,36 @@ const SupervisorDashboard = () => {
                                 {pendingReviews.map((goal) => (
                                     <Box key={goal.id}>
                                         <ListItem
-                                            secondaryAction={
+                                            disableGutters
+                                            sx={{
+                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                alignItems: { xs: 'flex-start', sm: 'center' },
+                                                py: 2
+                                            }}
+                                        >
+                                            <Box sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                width: '100%',
+                                                mb: { xs: 2, sm: 0 }
+                                            }}>
+                                                <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                                                    {goal.apprenticeName?.split(' ').map(name => name[0]).join('')}
+                                                </Avatar>
+                                                <Box sx={{ flexGrow: 1, mr: { xs: 0, sm: 2 } }}>
+                                                    <Typography variant="subtitle1">
+                                                        {goal.title}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {goal.apprenticeName} • Submitted {goal.submittedAt ? format(goal.submittedAt.toDate(), 'MMM d, yyyy') : 'N/A'}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                                                width: { xs: '100%', sm: 'auto' }
+                                            }}>
                                                 <Button
                                                     variant="contained"
                                                     component={RouterLink}
@@ -164,25 +193,7 @@ const SupervisorDashboard = () => {
                                                 >
                                                     Review
                                                 </Button>
-                                            }
-                                        >
-                                            <ListItemText
-                                                primary={
-                                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                        <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
-                                                            {goal.apprenticeName?.split(' ').map(name => name[0]).join('')}
-                                                        </Avatar>
-                                                        <Box>
-                                                            <Typography variant="subtitle1">
-                                                                {goal.title}
-                                                            </Typography>
-                                                            <Typography variant="body2" color="text.secondary">
-                                                                {goal.apprenticeName} • Submitted {goal.submittedAt ? format(goal.submittedAt.toDate(), 'MMM d, yyyy') : 'N/A'}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
-                                                }
-                                            />
+                                            </Box>
                                         </ListItem>
                                         <Divider />
                                     </Box>
@@ -191,16 +202,14 @@ const SupervisorDashboard = () => {
                         )}
                     </Paper>
                 </Grid2>
-
             </Grid2>
+
             <Grid2 item xs={12} mt={4}>
                 <LeaderboardStats />
             </Grid2>
             <Grid2 item xs={12} mt={4}>
                 <LeaderboardChart />
             </Grid2>
-
-
         </Box>
     );
 };

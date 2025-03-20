@@ -1,4 +1,3 @@
-// src/components/profile/EmailNotificationsToggle.jsx
 import { useState, useEffect } from 'react';
 import {
     Box,

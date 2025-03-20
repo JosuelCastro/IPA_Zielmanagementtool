@@ -15,7 +15,9 @@ import {
     ListItem,
     ListItemText,
     ListItemIcon,
-    Divider
+    Divider,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -23,7 +25,8 @@ import {
     Assignment as AssignmentIcon,
     People as PeopleIcon,
     AccountCircle as AccountIcon,
-    ExitToApp as LogoutIcon
+    ExitToApp as LogoutIcon,
+    Notifications as NotificationsDrawerIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext.jsx';
 import NotificationIcon from '../notifications/NotificationIcon';
@@ -32,9 +35,13 @@ import NotificationsPopup from '../notifications/NotificationsPopup';
 const Header = () => {
     const { currentUser, userProfile, logout } = useAuth();
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const [anchorEl, setAnchorEl] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+    const [mobileNotificationsOpen, setMobileNotificationsOpen] = useState(false);
 
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget);
@@ -59,20 +66,30 @@ const Header = () => {
     };
 
     const handleNotificationsOpen = (event) => {
-        setNotificationsAnchorEl(event.currentTarget);
+        if (isMobile) {
+            setMobileNotificationsOpen(true);
+        } else {
+            setNotificationsAnchorEl(event.currentTarget);
+        }
     };
 
     const handleNotificationsClose = () => {
         setNotificationsAnchorEl(null);
+        setMobileNotificationsOpen(false);
+    };
+
+    const handleNavigateAndCloseDrawer = (path) => {
+        navigate(path);
+        setDrawerOpen(false);
     };
 
     const drawerItems = [
-        { text: 'Dashboard', icon: <DashboardIcon />, link: '/dashboard' },
+        { text: 'Dashboard', icon: <DashboardIcon />, onClick: () => handleNavigateAndCloseDrawer('/dashboard') },
         ...(userProfile?.role === 'apprentice'
-                ? [{ text: 'My Goals', icon: <AssignmentIcon />, link: '/goals' }]
-                : [{ text: 'Apprentices', icon: <PeopleIcon />, link: '/apprentices' }]
+                ? [{ text: 'My Goals', icon: <AssignmentIcon />, onClick: () => handleNavigateAndCloseDrawer('/goals') }]
+                : [{ text: 'Apprentices', icon: <PeopleIcon />, onClick: () => handleNavigateAndCloseDrawer('/apprentices') }]
         ),
-        { text: 'Leaderboard', icon: <PeopleIcon />, link: '/leaderboard' }
+        { text: 'Leaderboard', icon: <PeopleIcon />, onClick: () => handleNavigateAndCloseDrawer('/leaderboard') }
     ];
 
     return (
@@ -85,7 +102,7 @@ const Header = () => {
                             color="inherit"
                             aria-label="menu"
                             onClick={handleDrawerToggle}
-                            sx={{ mr: 2, display: { sm: 'none' } }}
+                            sx={{ mr: 2 }}
                         >
                             <MenuIcon />
                         </IconButton>
@@ -109,7 +126,7 @@ const Header = () => {
                                 src="/Cognizant.png"
                                 alt="Cognizant Logo"
                                 sx={{
-                                    height: 64,
+                                    height: { xs: 48, sm: 64 },
                                     mr: 1,
                                     display: 'block'
                                 }}
@@ -119,7 +136,8 @@ const Header = () => {
 
                     {currentUser ? (
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box sx={{ display: { xs: 'none', sm: 'flex' }, mr: 2 }}>
+                            {/* Navigation buttons - only show on larger screens */}
+                            <Box sx={{ display: { xs: 'none', md: 'flex' }, mr: 2 }}>
                                 <Button
                                     color="inherit"
                                     component={RouterLink}
@@ -156,23 +174,28 @@ const Header = () => {
                                 </Button>
                             </Box>
 
-                            {/* Notification Icon */}
-                            <NotificationIcon onClick={handleNotificationsOpen} />
+                            {/* Notification Icon - only show on larger screens */}
+                            {!isMobile && (
+                                <NotificationIcon onClick={handleNotificationsOpen} />
+                            )}
 
-                            {/* User Avatar */}
-                            <IconButton
-                                size="large"
-                                aria-label="account of current user"
-                                aria-controls="menu-appbar"
-                                aria-haspopup="true"
-                                onClick={handleMenu}
-                                color="inherit"
-                            >
-                                <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, fontSize: 14 }}>
-                                    {userProfile?.firstName?.charAt(0) || ''}
-                                    {userProfile?.lastName?.charAt(0) || ''}
-                                </Avatar>
-                            </IconButton>
+                            {/* User Avatar - only show on larger screens */}
+                            {!isMobile && (
+                                <IconButton
+                                    size="large"
+                                    aria-label="account of current user"
+                                    aria-controls="menu-appbar"
+                                    aria-haspopup="true"
+                                    onClick={handleMenu}
+                                    color="inherit"
+                                >
+                                    <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32, fontSize: 14 }}>
+                                        {userProfile?.firstName?.charAt(0) || ''}
+                                        {userProfile?.lastName?.charAt(0) || ''}
+                                    </Avatar>
+                                </IconButton>
+                            )}
+
                             <Menu
                                 id="menu-appbar"
                                 anchorEl={anchorEl}
@@ -194,7 +217,7 @@ const Header = () => {
                                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
                             </Menu>
 
-                            {/* Notifications Popup */}
+                            {/* Notifications Popup - only for desktop */}
                             <NotificationsPopup
                                 anchorEl={notificationsAnchorEl}
                                 open={Boolean(notificationsAnchorEl)}
@@ -218,26 +241,20 @@ const Header = () => {
                 <Box
                     sx={{ width: 250 }}
                     role="presentation"
-                    onClick={handleDrawerToggle}
                 >
-                    {/* Logo in drawer header */}
+                    {/* User Profile in drawer header */}
                     <Box sx={{
                         p: 2,
                         display: 'flex',
                         alignItems: 'center',
                         borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
                     }}>
-                        <Box
-                            component="img"
-                            src="/Cognizant.png"
-                            alt="Cognizant Logo"
-                            sx={{
-                                height: 32,
-                                mr: 1
-                            }}
-                        />
-                        <Typography variant="h6" component="div">
-                            ZielManager
+                        <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
+                            {userProfile?.firstName?.charAt(0) || ''}
+                            {userProfile?.lastName?.charAt(0) || ''}
+                        </Avatar>
+                        <Typography variant="subtitle1">
+                            {userProfile?.firstName} {userProfile?.lastName}
                         </Typography>
                     </Box>
 
@@ -246,27 +263,51 @@ const Header = () => {
                             <ListItem
                                 button
                                 key={item.text}
-                                component={RouterLink}
-                                to={item.link}
+                                onClick={item.onClick}
                             >
                                 <ListItemIcon>{item.icon}</ListItemIcon>
                                 <ListItemText primary={item.text} />
                             </ListItem>
                         ))}
                     </List>
+
                     <Divider />
+
+                    {/* Added Notifications to drawer */}
                     <List>
-                        <ListItem button component={RouterLink} to="/profile">
+                        <ListItem button onClick={() => {
+                            setDrawerOpen(false);
+                            handleNotificationsOpen();
+                        }}>
+                            <ListItemIcon><NotificationsDrawerIcon /></ListItemIcon>
+                            <ListItemText primary="Notifications" />
+                        </ListItem>
+                        <ListItem button onClick={() => {
+                            setDrawerOpen(false);
+                            navigate('/profile');
+                        }}>
                             <ListItemIcon><AccountIcon /></ListItemIcon>
                             <ListItemText primary="Profile" />
                         </ListItem>
-                        <ListItem button onClick={handleLogout}>
+                        <ListItem button onClick={() => {
+                            setDrawerOpen(false);
+                            handleLogout();
+                        }}>
                             <ListItemIcon><LogoutIcon /></ListItemIcon>
                             <ListItemText primary="Logout" />
                         </ListItem>
                     </List>
                 </Box>
             </Drawer>
+
+            {/* Mobile Notifications (full-screen or as a modal) */}
+            {isMobile && (
+                <NotificationsPopup
+                    open={mobileNotificationsOpen}
+                    onClose={handleNotificationsClose}
+                    fullScreen={true}
+                />
+            )}
         </Box>
     );
 };

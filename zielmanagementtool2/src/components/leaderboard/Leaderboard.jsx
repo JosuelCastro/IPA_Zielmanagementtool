@@ -15,9 +15,10 @@ import {
     Rating,
     Card,
     CardContent,
-    Divider
+    Divider,
+    Chip
 } from '@mui/material';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
@@ -28,11 +29,21 @@ const Leaderboard = () => {
     const [apprentices, setApprentices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [resetTimestamp, setResetTimestamp] = useState(null);
     const { userProfile } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Zuerst Leaderboard-Einstellungen abrufen, um den Reset-Timestamp zu bekommen
+                const settingsDoc = await getDoc(doc(db, 'settings', 'leaderboard'));
+                let resetDate = null;
+
+                if (settingsDoc.exists() && settingsDoc.data().leaderboardResetTimestamp) {
+                    resetDate = settingsDoc.data().leaderboardResetTimestamp;
+                    setResetTimestamp(resetDate);
+                }
+
                 // Get all users with role 'apprentice'
                 const userQuery = query(
                     collection(db, 'users'),
@@ -56,11 +67,25 @@ const Leaderboard = () => {
 
                 // Now get all the goals for each apprentice
                 const goalPromises = apprenticeData.map(async (apprentice) => {
-                    const goalQuery = query(
-                        collection(db, 'goals'),
-                        where('apprenticeId', '==', apprentice.id),
-                        where('approved', '==', true)
-                    );
+                    // Basisabfrage erstellen
+                    let goalQuery;
+
+                    if (resetDate) {
+                        // Nur Ziele, die nach dem letzten Reset genehmigt wurden
+                        goalQuery = query(
+                            collection(db, 'goals'),
+                            where('apprenticeId', '==', apprentice.id),
+                            where('approved', '==', true),
+                            where('approvedAt', '>=', resetDate)
+                        );
+                    } else {
+                        // Alle genehmigten Ziele, wenn kein Reset erfolgt ist
+                        goalQuery = query(
+                            collection(db, 'goals'),
+                            where('apprenticeId', '==', apprentice.id),
+                            where('approved', '==', true)
+                        );
+                    }
 
                     const goalSnapshot = await getDocs(goalQuery);
                     let totalRating = 0;
@@ -100,6 +125,17 @@ const Leaderboard = () => {
         fetchData();
     }, []);
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return null;
+
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return new Intl.DateTimeFormat('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
+    };
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -121,9 +157,19 @@ const Leaderboard = () => {
 
     return (
         <Box>
-            <Typography variant="h4" gutterBottom>
-                Apprentice Leaderboard
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4">
+                    Apprentice Leaderboard
+                </Typography>
+
+                {resetTimestamp && (
+                    <Chip
+                        label={`Laufendes Jahr: seit ${formatDate(resetTimestamp)}`}
+                        color="primary"
+                        variant="outlined"
+                    />
+                )}
+            </Box>
 
             {userProfile?.role === 'supervisor' && <LeaderboardCountdownSettings />}
 

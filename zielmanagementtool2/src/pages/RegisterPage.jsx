@@ -33,7 +33,7 @@ const RegisterPage = () => {
             lastName: Yup.string().required('Last name is required'),
             email: Yup.string()
                 .email('Invalid email address')
-                //.matches(/@cognizant\.com$/, 'Must be a Cognizant email')
+                .matches(/@cognizant\.com$/, 'Must be a Cognizant email')
                 .required('Email is required'),
             password: Yup.string()
                 .min(8, 'Password must be at least 8 characters')

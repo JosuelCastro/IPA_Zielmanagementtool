@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.jsx
 import { useState, useEffect } from 'react';
 import {
     Box,
@@ -18,7 +17,6 @@ import { doc, updateDoc, getDoc, collection, query, where, getDocs } from 'fireb
 import { db } from '../firebase/config';
 import { createSupervisorRequestNotification } from '../services/notificationService';
 import EmailNotificationsToggle from '../components/profile/EmailNotificationsToggle';
-import TestEmailButton from '../components/profile/TestEmailButton';
 
 const ProfilePage = () => {
     const { currentUser, userProfile } = useAuth();
@@ -259,9 +257,6 @@ const ProfilePage = () => {
 
             {/* Email Notifications Toggle */}
             <EmailNotificationsToggle />
-            {userProfile?.role === 'supervisor' && (
-                <TestEmailButton />
-            )}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Avatar

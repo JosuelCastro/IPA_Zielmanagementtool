@@ -25,10 +25,10 @@ export function AuthProvider({ children }) {
     const [isEmailVerified, setIsEmailVerified] = useState(false);
 
     async function register(email, password, firstName, lastName) {
-        /* // Check if email is from Cognizant
+        // Check if email is from Cognizant
          if (!email.endsWith('@cognizant.com')) {
              throw new Error('Registration requires a Cognizant email address');
-         }*/
+         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
@@ -63,7 +63,6 @@ export function AuthProvider({ children }) {
                 await checkUserGoals(userCredential.user, profile);
             } catch (error) {
                 console.error("Error checking goals:", error);
-                // Don't prevent login if this fails
             }
         }
 

@@ -1,4 +1,3 @@
-// src/services/emailService.js
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';

@@ -16,7 +16,7 @@ import {
     Check as CheckIcon,
     Pending as PendingIcon
 } from '@mui/icons-material';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import LeaderboardStats from '../leaderboard/LeaderboardStats';
@@ -40,7 +40,8 @@ const ApprenticeDashboard = () => {
             try {
                 const q = query(
                     collection(db, 'goals'),
-                    where('apprenticeId', '==', currentUser.uid)
+                    where('apprenticeId', '==', currentUser.uid),
+                    orderBy('createdAt', 'desc') // Sort by Date Created
                 );
 
                 const querySnapshot = await getDocs(q);
@@ -256,7 +257,7 @@ const ApprenticeDashboard = () => {
                                                 />
                                             )}
                                         </Box>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                             {goal.description.length > 150
                                                 ? `${goal.description.substring(0, 150)}...`
                                                 : goal.description}
@@ -295,7 +296,7 @@ const ApprenticeDashboard = () => {
             </Typography>
             <Grid2 item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <LeaderboardStats />
+                    <LeaderboardStats />
                 </Box>
             </Grid2>
         </Box>

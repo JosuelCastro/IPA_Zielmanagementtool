@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Paper, CircularProgress, Alert } from '@mui/material';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { Box, Typography, Paper, CircularProgress, Alert, Chip } from '@mui/material';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -8,10 +8,20 @@ const LeaderboardChart = () => {
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [resetTimestamp, setResetTimestamp] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Zuerst Leaderboard-Einstellungen abrufen, um den Reset-Timestamp zu bekommen
+                const settingsDoc = await getDoc(doc(db, 'settings', 'leaderboard'));
+                let resetDate = null;
+
+                if (settingsDoc.exists() && settingsDoc.data().leaderboardResetTimestamp) {
+                    resetDate = settingsDoc.data().leaderboardResetTimestamp;
+                    setResetTimestamp(resetDate);
+                }
+
                 // Get all users with role 'apprentice'
                 const userQuery = query(
                     collection(db, 'users'),
@@ -28,12 +38,25 @@ const LeaderboardChart = () => {
                         ...doc.data()
                     };
 
-                    // Get approved goals for this apprentice
-                    const goalQuery = query(
-                        collection(db, 'goals'),
-                        where('apprenticeId', '==', apprentice.id),
-                        where('approved', '==', true)
-                    );
+                    // Basisabfrage erstellen
+                    let goalQuery;
+
+                    if (resetDate) {
+                        // Nur Ziele, die nach dem letzten Reset genehmigt wurden
+                        goalQuery = query(
+                            collection(db, 'goals'),
+                            where('apprenticeId', '==', apprentice.id),
+                            where('approved', '==', true),
+                            where('approvedAt', '>=', resetDate)
+                        );
+                    } else {
+                        // Alle genehmigten Ziele, wenn kein Reset erfolgt ist
+                        goalQuery = query(
+                            collection(db, 'goals'),
+                            where('apprenticeId', '==', apprentice.id),
+                            where('approved', '==', true)
+                        );
+                    }
 
                     const goalSnapshot = await getDocs(goalQuery);
                     let totalRating = 0;
@@ -74,6 +97,17 @@ const LeaderboardChart = () => {
         fetchData();
     }, []);
 
+    const formatDate = (timestamp) => {
+        if (!timestamp) return null;
+
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return new Intl.DateTimeFormat('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
+    };
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -92,9 +126,19 @@ const LeaderboardChart = () => {
 
     return (
         <Paper sx={{ p: 3, mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-                Top Apprentices by Rating
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Typography variant="h6">
+                    Top Apprentices by Rating
+                </Typography>
+                {resetTimestamp && (
+                    <Chip
+                        label={`Daten seit: ${formatDate(resetTimestamp)}`}
+                        color="primary"
+                        size="small"
+                        variant="outlined"
+                    />
+                )}
+            </Box>
 
             {chartData.length > 0 ? (
                 <Box sx={{ height: 400 }}>
